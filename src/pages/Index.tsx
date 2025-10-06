@@ -517,7 +517,15 @@ const Index = () => {
                             src={car.photos[currentImageIndex]} 
                             alt={car.name}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.nextElementSibling;
+                              if (fallback) fallback.classList.remove('hidden');
+                            }}
                           />
+                          <div className="hidden w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-muted to-muted/50">
+                            {getCarIcon(car)}
+                          </div>
                           {car.photos.length > 1 && (
                             <>
                               <button
