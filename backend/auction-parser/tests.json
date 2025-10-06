@@ -1,0 +1,37 @@
+{
+  "tests": [
+    {
+      "name": "Get all cars from all auctions",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "cars": "array",
+        "total": "number",
+        "timestamp": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Filter cars by Japan",
+      "method": "GET",
+      "path": "/?country=japan",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "cars": "array",
+        "total": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Filter cars by Korea",
+      "method": "GET",
+      "path": "/?country=korea",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "cars": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

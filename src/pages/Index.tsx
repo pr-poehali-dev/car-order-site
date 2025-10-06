@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import Icon from '@/components/ui/icon';
 
 const Index = () => {
   const [selectedCountry, setSelectedCountry] = useState('all');
+  const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [calculatorData, setCalculatorData] = useState({
     price: '',
     country: 'japan',
@@ -21,80 +23,31 @@ const Index = () => {
     { id: 'china', name: 'Китай', flag: '🇨🇳' }
   ];
 
-  const cars = [
-    {
-      id: 1,
-      name: 'Mercedes-Benz S-Class',
-      year: 2023,
-      price: 85000,
-      country: 'japan',
-      engine: '3.0L V6',
-      transmission: 'Автомат',
-      mileage: 5000,
-      image: '🚗',
-      auction: 'USS Tokyo'
-    },
-    {
-      id: 2,
-      name: 'Toyota Land Cruiser 300',
-      year: 2024,
-      price: 95000,
-      country: 'japan',
-      engine: '3.5L V6',
-      transmission: 'Автомат',
-      mileage: 2000,
-      image: '🚙',
-      auction: 'JAA'
-    },
-    {
-      id: 3,
-      name: 'Hyundai Genesis GV80',
-      year: 2023,
-      price: 65000,
-      country: 'korea',
-      engine: '3.5L V6',
-      transmission: 'Автомат',
-      mileage: 8000,
-      image: '🚗',
-      auction: 'Seoul Auto'
-    },
-    {
-      id: 4,
-      name: 'Hongqi H9',
-      year: 2024,
-      price: 55000,
-      country: 'china',
-      engine: '2.0L Turbo',
-      transmission: 'Автомат',
-      mileage: 1000,
-      image: '🚗',
-      auction: 'Beijing Auto Auction'
-    },
-    {
-      id: 5,
-      name: 'Lexus LX 600',
-      year: 2023,
-      price: 120000,
-      country: 'japan',
-      engine: '3.5L V6 Twin-Turbo',
-      transmission: 'Автомат',
-      mileage: 3000,
-      image: '🚙',
-      auction: 'USS Tokyo'
-    },
-    {
-      id: 6,
-      name: 'Kia EV6 GT',
-      year: 2024,
-      price: 58000,
-      country: 'korea',
-      engine: 'Electric',
-      transmission: 'Автомат',
-      mileage: 500,
-      image: '⚡',
-      auction: 'Busan Auto'
-    }
-  ];
+  useEffect(() => {
+    const fetchCars = async () => {
+      setLoading(true);
+      try {
+        const country = selectedCountry === 'all' ? '' : selectedCountry;
+        const url = `https://functions.poehali.dev/9956f5fd-c378-45ad-becc-3122e4bea5c4${country ? `?country=${country}` : ''}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        setCars(data.cars || []);
+      } catch (error) {
+        console.error('Error fetching cars:', error);
+        setCars([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCars();
+  }, [selectedCountry]);
+
+  const getCarIcon = (car: any) => {
+    if (car.engine?.toLowerCase().includes('electric')) return '⚡';
+    if (car.name?.toLowerCase().includes('suv') || car.name?.toLowerCase().includes('cruiser')) return '🚙';
+    return '🚗';
+  };
 
   const reviews = [
     {
@@ -133,9 +86,7 @@ const Index = () => {
     };
   };
 
-  const filteredCars = selectedCountry === 'all' 
-    ? cars 
-    : cars.filter(car => car.country === selectedCountry);
+
 
   const costs = calculateCost();
 
@@ -392,12 +343,23 @@ const Index = () => {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCars.map(car => (
-              <Card key={car.id} className="overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
-                <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-6xl">
-                  {car.image}
-                </div>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
+              <p className="mt-4 text-muted-foreground">Загрузка автомобилей с аукционов...</p>
+            </div>
+          ) : cars.length === 0 ? (
+            <div className="text-center py-12">
+              <Icon name="Search" size={48} className="mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Автомобили не найдены</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {cars.map((car: any) => (
+                <Card key={car.id} className="overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
+                  <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-6xl">
+                    {getCarIcon(car)}
+                  </div>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -438,10 +400,9 @@ const Index = () => {
                       Подробнее
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}\n            </div>\n          )}
         </div>
       </section>
 
