@@ -402,7 +402,9 @@ const Index = () => {
                   </div>
                   </CardContent>
                 </Card>
-              ))}\n            </div>\n          )}
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
