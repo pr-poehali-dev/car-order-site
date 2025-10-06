@@ -16,6 +16,18 @@ const Index = () => {
     country: 'japan',
     engineSize: ''
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    bodyType: 'all',
+    fuelType: 'all',
+    minPrice: '',
+    maxPrice: '',
+    minYear: '',
+    maxYear: '',
+    minMileage: '',
+    maxMileage: ''
+  });
+  const [activeImageIndex, setActiveImageIndex] = useState<{[key: string]: number}>({});
 
   const countries = [
     { id: 'japan', name: 'Япония', flag: '🇯🇵' },
@@ -27,8 +39,19 @@ const Index = () => {
     const fetchCars = async () => {
       setLoading(true);
       try {
-        const country = selectedCountry === 'all' ? '' : selectedCountry;
-        const url = `https://functions.poehali.dev/9956f5fd-c378-45ad-becc-3122e4bea5c4${country ? `?country=${country}` : ''}`;
+        const params = new URLSearchParams();
+        if (selectedCountry !== 'all') params.append('country', selectedCountry);
+        if (filters.bodyType !== 'all') params.append('bodyType', filters.bodyType);
+        if (filters.fuelType !== 'all') params.append('fuelType', filters.fuelType);
+        if (filters.minPrice) params.append('minPrice', filters.minPrice);
+        if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+        if (filters.minYear) params.append('minYear', filters.minYear);
+        if (filters.maxYear) params.append('maxYear', filters.maxYear);
+        if (filters.minMileage) params.append('minMileage', filters.minMileage);
+        if (filters.maxMileage) params.append('maxMileage', filters.maxMileage);
+        
+        const queryString = params.toString();
+        const url = `https://functions.poehali.dev/9956f5fd-c378-45ad-becc-3122e4bea5c4${queryString ? `?${queryString}` : ''}`;
         const response = await fetch(url);
         const data = await response.json();
         setCars(data.cars || []);
@@ -41,7 +64,7 @@ const Index = () => {
     };
 
     fetchCars();
-  }, [selectedCountry]);
+  }, [selectedCountry, filters]);
 
   const getCarIcon = (car: any) => {
     if (car.engine?.toLowerCase().includes('electric')) return '⚡';
@@ -343,6 +366,132 @@ const Index = () => {
             ))}
           </div>
 
+          {/* Advanced Filters */}
+          <Card className="mb-8 max-w-5xl mx-auto">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Расширенные фильтры</CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Icon name={showFilters ? 'ChevronUp' : 'ChevronDown'} size={20} />
+                </Button>
+              </div>
+            </CardHeader>
+            {showFilters && (
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Тип кузова</label>
+                    <Select value={filters.bodyType} onValueChange={(value) => setFilters({...filters, bodyType: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все</SelectItem>
+                        <SelectItem value="SUV">SUV</SelectItem>
+                        <SelectItem value="Седан">Седан</SelectItem>
+                        <SelectItem value="Минивэн">Минивэн</SelectItem>
+                        <SelectItem value="Купе">Купе</SelectItem>
+                        <SelectItem value="Универсал">Универсал</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Тип топлива</label>
+                    <Select value={filters.fuelType} onValueChange={(value) => setFilters({...filters, fuelType: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все</SelectItem>
+                        <SelectItem value="Бензин">Бензин</SelectItem>
+                        <SelectItem value="Электро">Электро</SelectItem>
+                        <SelectItem value="Гибрид">Гибрид</SelectItem>
+                        <SelectItem value="Дизель">Дизель</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Цена</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="$ от"
+                        value={filters.minPrice}
+                        onChange={(e) => setFilters({...filters, minPrice: e.target.value})}
+                      />
+                      <Input 
+                        type="number" 
+                        placeholder="$ до"
+                        value={filters.maxPrice}
+                        onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Год</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="от"
+                        value={filters.minYear}
+                        onChange={(e) => setFilters({...filters, minYear: e.target.value})}
+                      />
+                      <Input 
+                        type="number" 
+                        placeholder="до"
+                        value={filters.maxYear}
+                        onChange={(e) => setFilters({...filters, maxYear: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Пробег</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        placeholder="км от"
+                        value={filters.minMileage}
+                        onChange={(e) => setFilters({...filters, minMileage: e.target.value})}
+                      />
+                      <Input 
+                        type="number" 
+                        placeholder="км до"
+                        value={filters.maxMileage}
+                        onChange={(e) => setFilters({...filters, maxMileage: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button 
+                      className="w-full bg-secondary hover:bg-secondary/90 text-primary"
+                      onClick={() => setFilters({
+                        bodyType: 'all',
+                        fuelType: 'all',
+                        minPrice: '',
+                        maxPrice: '',
+                        minYear: '',
+                        maxYear: '',
+                        minMileage: '',
+                        maxMileage: ''
+                      })}
+                    >
+                      Сбросить фильтры
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
@@ -355,54 +504,118 @@ const Index = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cars.map((car: any) => (
-                <Card key={car.id} className="overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
-                  <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-6xl">
-                    {getCarIcon(car)}
-                  </div>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <CardTitle className="text-lg mb-1">{car.name}</CardTitle>
-                      <CardDescription className="text-xs">{car.auction}</CardDescription>
+              {cars.map((car: any) => {
+                const currentImageIndex = activeImageIndex[car.id] || 0;
+                const hasPhotos = car.photos && car.photos.length > 0;
+                
+                return (
+                  <Card key={car.id} className="overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1">
+                    <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 relative group">
+                      {hasPhotos ? (
+                        <>
+                          <img 
+                            src={car.photos[currentImageIndex]} 
+                            alt={car.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {car.photos.length > 1 && (
+                            <>
+                              <button
+                                onClick={() => setActiveImageIndex({
+                                  ...activeImageIndex,
+                                  [car.id]: currentImageIndex === 0 ? car.photos.length - 1 : currentImageIndex - 1
+                                })}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Icon name="ChevronLeft" size={20} />
+                              </button>
+                              <button
+                                onClick={() => setActiveImageIndex({
+                                  ...activeImageIndex,
+                                  [car.id]: currentImageIndex === car.photos.length - 1 ? 0 : currentImageIndex + 1
+                                })}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Icon name="ChevronRight" size={20} />
+                              </button>
+                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                                {car.photos.map((_: any, idx: number) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => setActiveImageIndex({...activeImageIndex, [car.id]: idx})}
+                                    className={`w-2 h-2 rounded-full transition-all ${
+                                      idx === currentImageIndex 
+                                        ? 'bg-white w-4' 
+                                        : 'bg-white/50 hover:bg-white/75'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-6xl">
+                          {getCarIcon(car)}
+                        </div>
+                      )}
                     </div>
-                    <Badge variant="outline" className="border-secondary text-secondary">
-                      {countries.find(c => c.id === car.country)?.flag}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm mb-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Год:</span>
-                      <span className="font-medium">{car.year}</span>
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <CardTitle className="text-lg mb-1">{car.name}</CardTitle>
+                        <CardDescription className="text-xs">{car.auction}</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="border-secondary text-secondary">
+                        {countries.find(c => c.id === car.country)?.flag}
+                      </Badge>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Двигатель:</span>
-                      <span className="font-medium">{car.engine}</span>
+                    <div className="flex gap-2 mt-2">
+                      {car.bodyType && (
+                        <Badge variant="secondary" className="text-xs">
+                          {car.bodyType}
+                        </Badge>
+                      )}
+                      {car.fuelType && (
+                        <Badge variant="outline" className="text-xs">
+                          {car.fuelType}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">КПП:</span>
-                      <span className="font-medium">{car.transmission}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm mb-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Год:</span>
+                        <span className="font-medium">{car.year}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Двигатель:</span>
+                        <span className="font-medium">{car.engine}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">КПП:</span>
+                        <span className="font-medium">{car.transmission}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Пробег:</span>
+                        <span className="font-medium">{car.mileage.toLocaleString()} км</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Пробег:</span>
-                      <span className="font-medium">{car.mileage.toLocaleString()} км</span>
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-2xl font-bold text-primary">${car.price.toLocaleString()}</span>
+                        <span className="text-sm text-muted-foreground">на аукционе</span>
+                      </div>
+                      <Button className="w-full bg-secondary hover:bg-secondary/90 text-primary">
+                        <Icon name="Eye" size={16} className="mr-2" />
+                        Подробнее
+                      </Button>
                     </div>
-                  </div>
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-2xl font-bold text-primary">${car.price.toLocaleString()}</span>
-                      <span className="text-sm text-muted-foreground">на аукционе</span>
-                    </div>
-                    <Button className="w-full bg-secondary hover:bg-secondary/90 text-primary">
-                      <Icon name="Eye" size={16} className="mr-2" />
-                      Подробнее
-                    </Button>
-                  </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

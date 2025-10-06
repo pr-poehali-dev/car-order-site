@@ -13,9 +13,9 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Filter cars by Japan",
+      "name": "Filter by body type SUV",
       "method": "GET",
-      "path": "/?country=japan",
+      "path": "/?bodyType=SUV",
       "expectedStatus": 200,
       "expectedBody": {
         "cars": "array",
@@ -24,12 +24,13 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Filter cars by Korea",
+      "name": "Filter by price range",
       "method": "GET",
-      "path": "/?country=korea",
+      "path": "/?minPrice=50000&maxPrice=70000",
       "expectedStatus": 200,
       "expectedBody": {
-        "cars": "array"
+        "cars": "array",
+        "total": "number"
       },
       "bodyMatcher": "partial"
     }
